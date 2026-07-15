@@ -15,8 +15,8 @@ This skill performs an automated code review on a GitHub Pull Request using the 
     *   To get the diff: `gh pr diff <URL>`
     *   To view existing comments: `gh pr view <URL> --comments`
 3.  **Perform and Post Code Review**: Review the code by strictly following the workflow and rules defined in `references/CODE_REVIEW.md`. 
-    *   **CRITICAL**: Do NOT present findings to the user for approval first. As you find issues during the review, post comments directly on the correct line of code using the `gh api` command:
-        `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments -f body="Your review comment" -f commit_id="{latest_commit_id_of_pr}" -f path="relative/path/to/file" -F line={line_number}`
+    *   As you perform the review, add your comments directly on the correct line of code in the PR using the `gh` CLI.
+    *   To comment on a specific line of code, use the following `gh api` command: `gh api -X POST repos/{owner}/{repo}/pulls/{pull_number}/comments -f body="Your review comment" -f commit_id="{latest_commit_id_of_pr}" -f path="relative/path/to/file" -F line={line_number}`
     *   After adding all inline comments, finalize and submit the formal review (Approve, Request Changes, or Comment) using:
         *   `gh pr review <URL> --approve --body "Looks good to me!"`
         *   `gh pr review <URL> --request-changes --body "Please address the inline comments."`
