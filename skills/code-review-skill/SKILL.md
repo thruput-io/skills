@@ -14,7 +14,7 @@ This skill performs a code review on a GitHub Pull Request using the `gh` CLI.
     *   To get the overview and description: `gh pr view <URL> --json title,body,state,author,headRefName,baseRefName`
     *   To get the code changes (diff): `gh pr diff <URL>`
     *   To view existing review comments to avoid duplicates: `gh pr view <URL> --comments`
-3.  **Perform Code Review**: When executing the code review, you must follow the guidelines and instructions outlined in `references/CODE_REVIEW.md`. Additionally, analyze the diffs for:
+3.  **Perform Code Review**: When executing the code review, you must follow the guidelines and instructions outlined in the handbook: `/Users/johan/thruput/workspace/handbook/CODE_REVIEW.md` (or the equivalent file in the user's workspace if the location differs). Additionally, analyze the diffs for:
     *   Check for Bugs or logic errors (see `references/bugs.md`)
     *   Check for Security vulnerabilities (see `references/security.md`)
     *   Check for Performance issues (see `references/performance.md`)
@@ -29,10 +29,7 @@ This skill performs a code review on a GitHub Pull Request using the `gh` CLI.
         *   `gh pr review <URL> --comment --body "Just some thoughts..."`
 
 ## Requirements
-- The `gh` CLI must be installed and authenticated.
+— The `gh` CLI must be installed and authenticated.
 
 ## Output Format
-When presenting the review to the user:
-*   Start with a brief executive summary of the changes.
-*   List issues by severity (e.g., Critical, Suggestion, Nitpick).
-*   For each issue, specify the file name and provide a snippet of the code in question along with your suggested fix.
+Only the actual review in Github.
