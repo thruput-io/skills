@@ -14,19 +14,18 @@ This skill performs a code review on a GitHub Pull Request using the `gh` CLI.
     *   To get the overview and description: `gh pr view <URL> --json title,body,state,author,headRefName,baseRefName`
     *   To get the code changes (diff): `gh pr diff <URL>`
     *   To view existing review comments to avoid duplicates: `gh pr view <URL> --comments`
-3.  **Perform Code Review**: When executing the code review, you must follow the guidelines and instructions outlined in the handbook: `/Users/johan/thruput/workspace/handbook/CODE_REVIEW.md` (or the equivalent file in the user's workspace if the location differs). Additionally, analyze the diffs for:
+3.  **Perform and Submit Code Review**: When executing the code review, you must follow the guidelines and instructions outlined in the handbook: `https://github.com/thruput-io/handbook/blob/main/CODE_REVIEW.md`. Additionally, analyze the diffs for:
     *   Check for Bugs or logic errors (see `references/bugs.md`)
     *   Check for Security vulnerabilities (see `references/security.md`)
     *   Check for Performance issues (see `references/performance.md`)
     *   Check for Style and readability improvements (see `references/style.md`)
-4.  **Present and Submit the Review**:
-    *   First, present the findings to the user clearly. 
-    *   If the user approves, you can submit the review using the `gh` CLI.
-    *   To add a general comment to the PR: `gh pr comment <URL> --body "Your comment here"`
-    *   To submit a formal review (Approve, Request Changes, or Comment):
+
+    **CRITICAL**: Do NOT present findings to the user for approval first. As you perform the review, add your comments directly on the correct line of code in the PR using the `gh` CLI.
+    *   To comment on specific lines, you may need to use `gh api` or the appropriate `gh pr review` features.
+    *   After adding inline comments, submit the formal review (Approve, Request Changes, or Comment):
         *   `gh pr review <URL> --approve --body "Looks good to me!"`
-        *   `gh pr review <URL> --request-changes --body "Please address the following issues..."`
-        *   `gh pr review <URL> --comment --body "Just some thoughts..."`
+        *   `gh pr review <URL> --request-changes --body "Please address the inline comments."`
+        *   `gh pr review <URL> --comment --body "General thoughts..."`
 
 ## Requirements
 — The `gh` CLI must be installed and authenticated.
