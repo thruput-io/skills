@@ -49,13 +49,7 @@ Read `references/CODE_REVIEW.md` and apply its rules to the diff. Build a JSON a
 - `side` is `RIGHT` for lines added/modified in the PR, `LEFT` for removed lines.
 - For multi-line comments add `start_line` and `start_side`.
 
-### 4. Show the drafted review to the user
-
-Before posting, print a summary: overall verdict (approve / request-changes / comment), the general body, and each inline comment as `path:line — first line of body`. Wait for confirmation.
-
-Posting to GitHub is visible to the PR author and reviewers and generates notifications — do not skip this confirmation step.
-
-### 5. Submit as a single review
+### 4. Submit as a single review
 
 Build a JSON payload:
 
@@ -76,7 +70,7 @@ gh api -X POST repos/{owner}/{repo}/pulls/{n}/reviews --input review.json
 
 This produces one review, one notification, and all comments are grouped. Do **not** use `POST /pulls/{n}/comments` in a loop — that creates N standalone review comments, N notifications, and is not atomic.
 
-### 6. Confirm
+### 5. Confirm
 
 Print the review URL from the API response. Do not restate the review content in chat — the user can read it on GitHub.
 
