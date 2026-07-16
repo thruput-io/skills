@@ -7,14 +7,11 @@ description: Reviews a GitHub Pull Request against the thruput-io handbook rules
 
 Reviews a GitHub Pull Request using the `gh` CLI, following the guidelines in `references/CODE_REVIEW.md`.
 
-## Bootstrap (run once, or when handbook is stale)
+## Bootstrap
 
-`references/CODE_REVIEW.md` is fetched at runtime — it is **not** committed to the skill. Before starting a review:
+`references/CODE_REVIEW.md` is fetched at runtime — it is **not** committed. Run `bash scripts/install.sh` when the file is missing or the user asks to refresh it. (`npx skills update` does not refresh the handbook.)
 
-1. If `references/CODE_REVIEW.md` does not exist, run `bash scripts/install.sh`.
-2. If the user asks to refresh the handbook, re-run `bash scripts/install.sh`.
-
-`npx skills update` refreshes SKILL.md and `scripts/install.sh`; it does **not** refresh the handbook cache — that is what `install.sh` is for.
+Recommended: register `bash <absolute-path>/scripts/install.sh` as the host's new-session/startup hook so the handbook auto-refreshes. On first use, offer to wire this up — Claude Code uses a `SessionStart` hook in `.claude/settings.json`; Antigravity and other hosts use their equivalent. Resolve the absolute path from this `SKILL.md`'s location; append to any existing hook list rather than replacing.
 
 ## Workflow
 
@@ -32,21 +29,15 @@ Extract `headRefOid` from the overview response — this is the `commit_id` requ
 
 ### 3. Draft comments locally
 
-Read `references/CODE_REVIEW.md` and apply its rules to the diff. Build a JSON array of comments in memory (do not post yet):
+Read `references/CODE_REVIEW.md` and apply its rules to the diff. Build a JSON array of comments in memory (do not post yet) using `resources/review-comments.template.json` as the shape — one object per comment, substituting each placeholder:
 
-```json
-[
-  {
-    "path": "src/foo.ts",
-    "line": 42,
-    "side": "RIGHT",
-    "body": "This branch will NPE when `user` is null — the check on line 39 only covers the happy path."
-  }
-]
-```
+- `{{PATH}}` — repo-relative file path (e.g. `src/foo.ts`).
+- `{{LINE}}` — line number in the file **as of the PR head commit**, not the diff hunk offset. Emit as a bare integer (no quotes).
+- `{{BODY_WITH_RULE_LINK}}` — the comment body. **Reference the violated rule or principle with an absolute repo URL so the link works from anywhere (e.g., PR comments, external tools).** Each rule has a stable HTML anchor id like `philosophy-achievement-strictness-over-sloppiness`. Example: `[Strictness over sloppiness](https://github.com/thruput-io/handbook/blob/main/PHILOSOPHY.md#philosophy-achievement-strictness-over-sloppiness)`. Follow the link with the concrete problem in this diff.
 
-- `line` is the line number in the file **as of the PR head commit**, not the diff hunk offset.
-- `side` is `RIGHT` for lines added/modified in the PR, `LEFT` for removed lines.
+Additional fields:
+
+- `side` is `RIGHT` for lines added/modified in the PR, `LEFT` for removed lines. The template defaults to `RIGHT`; change it when commenting on a removed line.
 - For multi-line comments add `start_line` and `start_side`.
 
 ### 4. Submit as a single review
@@ -82,4 +73,5 @@ Print the review URL from the API response. Do not restate the review content in
 ## Files
 
 - `scripts/install.sh` — fetches the handbook from `github.com/thruput-io/handbook` into `references/`.
+- `resources/review-comments.template.json` — shape for the comments array built in step 3; placeholders: `{{PATH}}`, `{{LINE}}`, `{{BODY_WITH_RULE_LINK}}`.
 - `tests/verify_install.sh` — smoke test for `install.sh`.
