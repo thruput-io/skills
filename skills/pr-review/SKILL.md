@@ -61,10 +61,6 @@ gh api -X POST repos/{owner}/{repo}/pulls/{n}/reviews --input review.json
 
 This produces one review, one notification, and all comments are grouped. Do **not** use `POST /pulls/{n}/comments` in a loop — that creates N standalone review comments, N notifications, and is not atomic.
 
-### 5. Confirm
-
-Print the review URL from the API response. Do not restate the review content in chat — the user can read it on GitHub.
-
 ## Requirements
 
 - `gh` CLI installed and authenticated (`gh auth status`).
