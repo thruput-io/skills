@@ -5,6 +5,7 @@ This repository contains a collection of AI agent skills that are versioned and 
 ## Available Skills
 
 -   [`skills/e2e-testing`](./skills/e2e-testing): A skill for generating reliable, end-to-end integration tests for dotnet backend projects.
+-   [`skills/pr-review`](./skills/pr-review): Reviews a GitHub Pull Request against the thruput-io handbook rules and posts the review as inline comments on the correct lines.
 
 ## Installation
 
@@ -18,6 +19,12 @@ For example, to install the `e2e-testing` skill:
 
 ```bash
 npx skills install git+https://github.com/thruput-io/skills.git/skills/e2e-testing
+```
+
+Or to install the `pr-review` skill:
+
+```bash
+npx skills install git+https://github.com/thruput-io/skills.git/skills/pr-review
 ```
 
 ### From a Local Directory

@@ -1,0 +1,8 @@
+[
+  {
+    "path": "{{PATH}}",
+    "line": {{LINE}},
+    "side": "RIGHT",
+    "body": "{{BODY_WITH_RULE_LINK}}"
+  }
+]
