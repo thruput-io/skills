@@ -1,8 +1,9 @@
 [
   {
     "path": "{{PATH}}",
-    "line": {{LINE}},
+    "line": "{{LINE}}",
     "side": "RIGHT",
-    "body": "{{BODY_WITH_RULE_LINK}}"
+    "body": "{{BODY_WITH}}",
+    "rule-reference": "{{RULE_REFERENCE}}"
   }
 ]
