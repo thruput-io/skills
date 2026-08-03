@@ -5,6 +5,7 @@ This repository contains a collection of AI agent skills that are versioned and 
 ## Available Skills
 
 -   [`skills/e2e-testing`](./skills/e2e-testing): A skill for generating reliable, end-to-end integration tests for dotnet backend projects.
+-   [`skills/planning`](./skills/planning): Co-authors an implementable plan for one problem with the human, following the thruput-io handbook `PLANNING.md`, and ends by asking permission to open the PR.
 -   [`skills/pr-review`](./skills/pr-review): Reviews a GitHub Pull Request against the thruput-io handbook rules and posts the review as inline comments on the correct lines.
 
 ## Installation
