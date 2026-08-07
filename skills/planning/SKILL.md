@@ -5,12 +5,12 @@ description: Co-author an implementable plan for one problem with the human, thr
 
 # Planning Skill
 
-Read <https://github.com/thruput-io/handbook/blob/main/PLANNING.md> and follow it. It is the
+Read <https://raw.githubusercontent.com/thruput-io/handbook/main/PLANNING.md> and follow it. It is the
 source of truth for how planning is conducted, what the plan must contain, and how the session
 ends.
 
-Read <https://github.com/thruput-io/handbook/blob/main/PLAN_TEMPLATE.md> when you reach
-`PLANNING.md` § Plan format. Copy it into the target project as
+Read <https://raw.githubusercontent.com/thruput-io/handbook/main/PLAN_TEMPLATE.md> when you reach
+[`PLANNING.md` § Plan format](https://raw.githubusercontent.com/thruput-io/handbook/main/PLANNING.md#plan-format). Copy it into the target project as
 `docs/plans/{plan-name}/{NNN}-{plan-name}.md` and fill it in.
 
 Both are referenced, never vendored — the handbook is the single source of truth, so always
@@ -18,9 +18,9 @@ read the current version rather than a cached copy.
 
 ## Before you start
 
-`PLANNING.md` § Preflight is a hard gate. Run it before asking the human anything: confirm you
+[`PLANNING.md` § Preflight](https://raw.githubusercontent.com/thruput-io/handbook/main/PLANNING.md#preflight) is a hard gate. Run it before asking the human anything: confirm you
 can write files, run the project's tests, run `git commit`, and reach the network; confirm the
-working tree is clean; read `RULES.md`, `PHILOSOPHY.md`, `WORKFLOW.md`, and the project's ADRs.
+working tree is clean; read [`RULES.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/RULES.md), [`PHILOSOPHY.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/PHILOSOPHY.md), [`WORKFLOW.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/WORKFLOW.md), and the project's ADRs.
 Stop and tell the human if any check fails.
 
 ## Boundaries

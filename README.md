@@ -22,6 +22,12 @@ For example, to install the `e2e-testing` skill:
 npx skills install git+https://github.com/thruput-io/skills.git/skills/e2e-testing
 ```
 
+Or to install the `planning` skill:
+
+```bash
+npx skills install git+https://github.com/thruput-io/skills.git/skills/planning
+```
+
 Or to install the `pr-review` skill:
 
 ```bash
