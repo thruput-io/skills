@@ -7,8 +7,6 @@ for seamless integration with the agent's MCP client.
 
 It is self-contained — no handbook or network references — so it works in any project where
 IntelliJ is running with the Companion plugin.
-
-##
 For detailed instructions on how the agent uses this skill, please see [`SKILL.md`](./SKILL.md).
 
 For installation instructions, please see the main [README.md](../../README.md) at the root of the repository.
