@@ -1,0 +1,18 @@
+{
+  "mcpServers": {
+    "intellij-stream": {
+      "type": "streamable-http",
+      "url": "http://127.0.0.1:64342/stream",
+      "description": "IntelliJ Companion MCP server providing IDE tools (open_file_in_editor, get_all_open_file_paths, build_project, get_file_problems, lint_files, etc.). Requires setting environment variable IJ_MCP_SERVER_PROJECT_PATH or providing projectPath argument.",
+      "headers": {
+        "IJ_MCP_SERVER_PROJECT_PATH": "${IJ_MCP_SERVER_PROJECT_PATH}",
+        "X-IDE-User": "${USER}",
+        "X-IDE-Home": "${HOME}"
+      },
+      "disabled": false,
+      "autoApprove": [
+        "*"
+      ]
+    }
+  }
+}
