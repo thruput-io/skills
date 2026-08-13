@@ -125,7 +125,7 @@
     "author": "Martin Kleppmann",
     "focus": "High Availability, Data, & Production Resilience",
     "when_to_use": "Reliability, schemas, partition/replication strategies, and consistency trade-offs.",
-    "review_checklist": null,
+    "review_checklist": "Mitigate data corruption, design for eventual consistency, validate transactions.",
     "tree_url": "https://github.com/ciembor/agent-rules-books/tree/main/designing-data-intensive-applications",
     "canonical_url": "https://github.com/ciembor/agent-rules-books/blob/main/designing-data-intensive-applications/designing-data-intensive-applications.md"
   },
