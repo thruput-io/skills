@@ -1,9 +1,0 @@
-[
-  {
-    "path": "{{PATH}}",
-    "line": "{{LINE}}",
-    "side": "RIGHT",
-    "body": "{{BODY_WITH}}",
-    "rule-reference": "{{RULE_REFERENCE}}"
-  }
-]

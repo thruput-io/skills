@@ -1,20 +1,36 @@
 ---
 name: pr-review
-description: Reviews a GitHub Pull Request against the thruput-io handbook rules and posts the review as inline comments on the correct lines. Distinct from the built-in `/review` skill in that it (a) follows the handbook at `github.com/thruput-io/handbook` (specifically `CODE_REVIEW.md`), and (b) submits one atomic GitHub review containing all inline comments rather than N individual comments. Trigger when the user provides a PR URL or asks for a handbook-driven PR review.
+description: Reviews a GitHub or Azure DevOps Pull Request against the thruput-io handbook rules and posts the review as inline comments on the correct lines. Distinct from the built-in `/review` skill in that it (a) follows the handbook at `github.com/thruput-io/handbook` (specifically `CODE_REVIEW.md`), (b) probes every rule in its own subagent, and (c) groups all inline comments into one review where the host allows it, rather than posting N individual comments. Trigger when the user provides a PR URL or asks for a handbook-driven PR review.
 ---
 
 # PR Review Skill
 
-Access the handbook repository directly at `github.com/thruput-io/handbook` (specifically [`CODE_REVIEW.md`](https://github.com/thruput-io/handbook/blob/main/CODE_REVIEW.md)) and follow it. It is the source of truth for both what to review and how to execute the review via the `gh` CLI.
+Read [`CODE_REVIEW.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/CODE_REVIEW.md) and follow it. It is the source of truth for both what to review
+and how to execute the review via the `gh` CLI. Read the current version rather than a cached copy.
 
-The `resources/review-comments.template.json` file shows the shape of a single comment object referenced by `CODE_REVIEW.md` step 4.
+It dispatches one subagent per probe using [`PROBE_SUBAGENT_TEMPLATE.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/PROBE_SUBAGENT_TEMPLATE.md); read that when you
+reach [`CODE_REVIEW.md` step 3](https://github.com/thruput-io/handbook/blob/main/CODE_REVIEW.md#3-library-search-and-rule-evaluation-run-in-parallel).
+
+The escalation index named by [`CODE_REVIEW.md` step 4](https://github.com/thruput-io/handbook/blob/main/CODE_REVIEW.md#4-escalate-when-the-ledger-comes-back-clean) is bundled under `references/` so it is available
+without the handbook checkout. Use the bundled copy; the step's own instructions for reading
+through it to the source repository still apply.
+
+Exact commands and payload shapes are not in `CODE_REVIEW.md` — they are in the cheat sheet for the
+host the PR lives on: [`gh-cheat-sheet.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/gh-cheat-sheet.md) for GitHub, [`az-cheat-sheet.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/az-cheat-sheet.md) for Azure DevOps
+(`dev.azure.com`). Read the one that matches the PR URL.
 
 ## Requirements
 
-- `gh` CLI installed and authenticated (`gh auth status`).
-- Access to `github.com/thruput-io/handbook` repository.
+- For a GitHub PR: `gh` CLI available.
+- For an Azure DevOps PR: `az` CLI with the `azure-devops` extension available.
+- Access to `github.com/thruput-io/handbook`.
+- Network access to `github.com/ciembor/agent-rules-books` for the step 4 escalation pass.
 
 ## Files
 
-- `resources/review-comments.template.json` — shape of a single comment object.
-- `examples/review-comments.sample.json` — sample review comments.
+- `references/agent-rules-books-INDEX.md`, `references/agent-rules-books-search-index.json` —
+  escalation index, byte-for-byte mirrors of the handbook's `references/`. Refresh with:
+
+      for f in agent-rules-books-INDEX.md agent-rules-books-search-index.json; do
+        gh api "repos/thruput-io/handbook/contents/references/$f" --jq '.content' | base64 -d > "references/$f"
+      done

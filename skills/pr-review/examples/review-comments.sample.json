@@ -1,9 +1,0 @@
-[
-  {
-    "path": "src/config/loadSettings.ts",
-    "line": 42,
-    "side": "RIGHT",
-    "body": "[Fail fast](https://github.com/thruput-io/handbook/blob/main/PHILOSOPHY.md#fail-fast): This required parameter is silently falling back to a default value. If the caller omits it, the code should fail immediately with a clear error instead of continuing with an assumed value, because that can hide configuration bugs and produce incorrect behavior later.",
-    "rule_link": "https://github.com/thruput-io/handbook/blob/main/PHILOSOPHY.md#fail-fast"
-  }
-]
