@@ -1,0 +1,6 @@
+# macOS
+.DS_Store
+
+# JetBrains: IDE state is local to a contributor, not shared
+.idea/
+*.iml
