@@ -41,7 +41,10 @@ IntelliJ requires every tool call to identify the target open project. Specify t
 
 ## 3. Calling Tools
 
-When the server is connected, invoke its tools directly:
+When the server is connected, invoke its tools directly — no handshake, no session header, and
+no `projectPath` unless you are targeting a project other than the connected one. Prefer this
+over the raw HTTP appendix: hand-rolled transports produce errors that belong to the client and
+are easily mistaken for IDE behaviour.
 
 | Tool | Key Arguments | Purpose |
 | --- | --- | --- |
@@ -55,12 +58,17 @@ When the server is connected, invoke its tools directly:
 
 ## 4. Diagnostics & Troubleshooting
 
+Through a configured MCP client, the only failure you should meet is the first row — the client
+owns the handshake, the session, and the project context. The rest occur only when driving the
+endpoint by hand (see the appendix); if one appears through a real client, treat it as a client
+or configuration defect rather than working around it.
+
 | Error / Symptom | Cause | Resolution |
 | --- | --- | --- |
-| `Unable to determine the target project` | Missing project scoping | Supply `projectPath` in tool call arguments or set `IJ_MCP_SERVER_PROJECT_PATH` |
 | Connection refused on `127.0.0.1:64342` | IntelliJ closed or plugin inactive | Ask human to ensure IntelliJ IDEA is running with the Companion plugin active |
-| `Bad Request: Server not initialized` (400) | Missing session state | Re-initialize the MCP connection in client |
-| `Streamable HTTP session not found` | Session expired | Re-initialize connection and retry tool call |
+| `Unable to determine the target project` | Raw call carried no project context | Supply `projectPath` in the arguments or the `IJ_MCP_SERVER_PROJECT_PATH` header. Not reachable through a configured client |
+| `Bad Request: Server not initialized` (400) | Handshake skipped, no `Mcp-Session-Id` | Run the handshake. Not reachable through a configured client |
+| `Streamable HTTP session not found` | Idle session reaped by the server. Measured against plugin 2026.2.1: a session still answered after 3s idle and was gone after 45s; the exact threshold is not established | Re-initialize and reissue the call. Do not assume any other cause without evidence |
 
 ---
 
