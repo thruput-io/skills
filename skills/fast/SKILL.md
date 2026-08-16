@@ -1,165 +1,182 @@
 ---
 name: fast
 description: >-
-  Google Cloud FAST (Fabric Automation Solution Toolkit) — its stage model, contracts, factories, and
-  extension points. Use when working in any repository that vendors FAST stages (fast-org-setup,
-  fast-project-factory, fast-networking, or a stage clone), when adding or changing a project, VPC,
-  subnet, firewall rule, DNS zone, KMS key or CI/CD wiring in a FAST landing zone, or when deciding
-  where a new piece of infrastructure belongs. Read before proposing any change to a FAST repository.
+  Orientation and sourced references for Google Cloud FAST (Fabric Automation Solution Toolkit), the
+  landing-zone design and Terraform reference implementation in cloud-foundation-fabric. Use when
+  working in a repository that vendors a FAST stage, when reading or changing a FAST landing zone,
+  or when about to make any claim about how FAST is designed. This is a reference guide, not a
+  procedure — its purpose is to get you to the authoritative source quickly rather than to substitute
+  for it.
 ---
 
 # FAST
 
-FAST is two things: a *design* for a production-ready GCP organization, and a Terraform *reference
-implementation* of that design, living under `fast/` in
-[cloud-foundation-fabric](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric). A
-repository that "is a FAST stage" holds a vendored copy of one stage's root module.
+## The one rule
 
-## Verify, do not recall
+**Read it at the pinned version. Do not assert it from memory.**
 
-FAST's structure changes between releases, and its details are knowable in seconds. Recalling them is
-how wrong architectural claims get made. Every repository pins its release:
+FAST's stage layout has changed across releases, so most published writing about it — including
+otherwise good third-party guides — describes a structure that no longer exists. Anything you
+"remember" about FAST is likely to be a previous major version.
 
 ```bash
-cat fast_version.txt                        # e.g. "# FAST release: v56.1.0"
+cat fast_version.txt        # every vendoring repo pins its release, e.g. "# FAST release: v56.1.0"
 ```
-
-Check the pinned version, not `master`:
 
 ```bash
 V=v56.1.0
 gh api "repos/GoogleCloudPlatform/cloud-foundation-fabric/contents/fast/stages?ref=$V" --jq '.[].name'
-gh api "repos/GoogleCloudPlatform/cloud-foundation-fabric/contents/fast/addons?ref=$V" --jq '.[].name'
 gh api "repos/GoogleCloudPlatform/cloud-foundation-fabric/contents/fast/stages/<stage>/README.md?ref=$V" \
   -H "Accept: application/vnd.github.raw"
 ```
 
-Before claiming a stage does or does not support something, read its README and its schema at the
-pinned version. Before claiming the live organization matches the repository, query it — committed
-`*.auto.tfvars.json` files are **snapshots written by a past apply** and go stale.
+Quote URLs containing `?` — the shell will otherwise glob them. For module inputs, outputs and
+schemas, use the `fabric-builder` skill's `fabric.py` rather than reading modules by hand; its rule
+applies here too: *"Do not invent module inputs or outputs."*
 
-## The model: stages are contracts
+## What FAST is
 
-A stage is a Terraform root module drawn around a **security boundary**, owned by the team
-responsible for that class of resource. Stages are contracts: each declares the inputs it needs and
-the outputs it publishes, so any stage can be replaced by different code that honours the same
-contract.
+Two things, and conflating them causes confusion:
 
-**Data flows forward only.** No stage depends on outputs produced further down the chain. This is
-what keeps stages independently runnable — and it is why "just read it from the later stage" is never
-the answer.
+> "On the one hand, FAST provides a design of a GCP organization that includes the typical elements
+> required by enterprise customers. Secondly, we provide a reference implementation of the FAST
+> design using Terraform." — `fast/README.md`
 
-### Stage map (v56.x)
+The design is not Terraform-specific: *"in theory, the FAST design can be implemented using any
+other tool"* (same source). So a real landing zone is one organisation's **vendored copy of one
+implementation at one version, possibly modified** — which is why reading that organisation's
+datasets tells you what it actually does, and reading upstream tells you only what it started from.
 
-| Stage | Owns | Publishes |
-|---|---|---|
-| `0-org-setup` | organization, hierarchy, tags, custom roles, org policies, automation project, CI/CD workflow rendering, output files | folder ids, project ids, service accounts, tag values, storage buckets, WIF pools/providers |
-| `1-vpcsc` | VPC Service Controls perimeters | perimeter names |
-| `2-security` | **projects hosting centralized KMS keys**, CAS; extendable to Secret Manager | `kms_keys`, CA ids |
-| `2-networking` | host projects, VPCs, subnets, firewall, Cloud NAT, routers, DNS | host project ids and numbers, VPC self links, subnet self links |
-| `2-project-factory` | team/application projects and folder hierarchy, via YAML | project ids, service accounts, generated provider files |
-| `3-*` | workload stages | varies |
-| `addons/` | thin layers on a parent stage | reuse the parent's SAs and state bucket |
+## Guiding principles
 
-A missing capability is often a stage that has not been deployed. If centralized KMS keys or Secret
-Manager are absent, the answer is usually `2-security`, not a bespoke workaround.
+Quoted from `fast/README.md`:
 
-## The operational rule: author inputs, never edit generated artifacts
+- **Contracts and stages** — *"stages are modeled around the security boundaries that typically
+  appear in mature organizations. This arrangement allows delegating ownership of each stage to the
+  team responsible for the types of resources it manages."*
+- **Security-first design** — *"FAST also aims to minimize the number of permissions granted to
+  principals"*, via groups, service accounts, custom roles and IAM Conditions.
+- **Extensive use of factories** — *"A resource factory consumes a simple representation of a
+  resource (e.g., in YAML) and deploys it."*
+- **CI/CD** — Workload Identity Federation, with sample workflow configurations for several
+  providers.
 
-| Authored by humans | Generated — never hand-edit |
-|---|---|
-| dataset YAML (`projects/`, `folders/`, `vpcs/`, `subnets/`, `firewall-rules/`, `dns/`) | `*.auto.tfvars.json` in the outputs bucket |
-| `defaults.yaml` for a dataset | `providers.tf` / backend files written for downstream stages and tenants |
-| `*.auto.tfvars` committed to select a dataset | rendered CI/CD workflow files |
-| your own modules, consumed by a stage | live GCP resources a module manages |
+And on how the code is meant to read, from the same file: *"Code should avoid magic and be as
+explicit as possible… We prefer as little indirection as possible. We favor flat over nested."*
 
-Changing a generated artifact is lost at the next apply and hides the real source. Change the input
-that produces it.
+Note also: *"we prefer to provide the basic implementation and encourage users to modify the codebase
+if additional (or different) behavior is needed."* Modification is anticipated by design — the cost
+is that a modified vendored file is replaced on upgrade.
 
-Upstream files vendored into the repository (`main.tf`, `factory-*.tf`, `assets/`, sample datasets
-carrying a Google copyright header) are replaced on re-vendor. Edits there are lost on upgrade.
+## The stage model
 
-## Factories and context interpolation
+From `fast/stages/README.md`:
 
-FAST is factory-driven: a YAML description in, resources out. The dataset is the human surface, and
-the dataset path is configurable:
+- *"Each of the folders contained here is a separate 'stage', or Terraform root module."*
+- *"each stage provides information on its resources to the following stages via predefined
+  contracts"*
+- *"any stage can be swapped out and replaced by different code as long as it respects the contract"*
+- *"the flow of data is always forward looking… so no stage needs to depend on outputs generated
+  further down the chain"*
 
-```hcl
-factories_config = {
-  dataset = "datasets/<name>"          # default: datasets/classic
-  paths   = { projects = "projects", folders = "folders", vpcs = "vpcs" }
-}
-```
+Consequences worth holding onto: a stage is a *root module*, not a repository; contracts are the
+interface, so what a stage publishes matters more than how it is implemented; and because data flows
+forward only, "read it from the later stage" is never the answer.
 
-Project YAML therefore lives at `datasets/<name>/projects/`, **not** the dataset root. A file on the
-wrong path is silently never read — and the resulting empty plan looks identical to success.
+Specialised functionality on top of a stage is expressed as an **add-on**: *"additional thin layers
+on top of a stage, that reuse its IaC resources and leverage the same IAM configuration: the same
+service accounts are used to run the add-on, and state configuration is stored in the same bucket as
+their 'parent stage' under a different prefix."* — `fast/addons/README.md`
 
-Values from preceding stages are referenced by interpolation rather than copied:
+## Reading a specific landing zone
 
-```yaml
-parent:         $folder_ids:teams/dev
-encryption_key: $kms_keys:<project>/<keyring>/<key>
-host_project:   $project_ids:net-host-0
-member:         $iam_principals:gcp-devops
-```
+Upstream tells you the design. It does not tell you what a given organisation runs. To learn that:
 
-Available context includes `folder_ids`, `project_ids`, `iam_principals`, `tag_values`, `kms_keys`
-(from `2-security`), `vpc_sc_perimeters` (from `1-vpcsc`), `storage_buckets`, `service_accounts`,
-`workload_identity_pools` and `workload_identity_providers`.
+1. `fast_version.txt` — which release this is vendored from.
+2. The dataset directory — the YAML *is* the configuration. `factories_config.dataset` selects which
+   directory is read, and `factories_config.paths` where each resource type lives within it.
+3. The generated tfvars in the outputs bucket — but treat any committed copy as a **snapshot of a
+   past apply**, not current state. Query the live organisation when the answer matters.
+4. Diffs against upstream at the pinned ref — anything modified is a local decision, and the reason
+   for it is unlikely to be written down.
 
-## Where new work belongs — in this order
+## Four things commonly got wrong
 
-1. **Dataset YAML**, if the stage's factory covers it. Most work stops here.
-2. **An add-on**, if it is a thin platform capability on top of an existing stage. Add-ons reuse the
-   parent stage's service accounts and state bucket under a different prefix; register the provider
-   file in stage 0's `defaults.yaml` under `output_files.providers`, plus a state folder in the IaC
-   project.
-3. **Your own module**, versioned in your own repository and instantiated by a stage.
-4. **Forking the stage** — last resort. Record the divergence; re-vendoring will overwrite it.
+Verified against `v56.1.0` (commit `8e0826a`). Re-verify at your own pinned release before relying
+on any of it.
 
-## Tenants are not stages
+**VPC Service Controls live in `1-vpcsc`, not in `0-org-setup`.** Stage 0 has no VPC-SC factory —
+no access levels, perimeters, ingress or egress policies, restricted services. Its `factories_config.paths`
+has nine keys and none of them is VPC-SC. Its only surface is *membership*: a project can be placed
+into a perimeter created elsewhere, via `project.vpc_sc.perimeter_name`, using an id supplied through
+`context.vpc_sc_perimeters`. If you find perimeter or access-level YAML in a stage 0 dataset, check
+whether anything actually reads it.
 
-This distinction is load-bearing, and getting it wrong collapses the model.
+**Stage-to-repository mapping is not documented.** No upstream file states one repo per stage, or
+several stages per repo. The samples and the `fast/extras/0-cicd-github` helper *demonstrate* one
+stage per repo — `populate_from` points at a single stage directory — but that is a demonstration,
+not a rule. The CI/CD schema requires one `repository.name` per entry and neither requires nor
+forbids two entries naming the same repository. Anyone asserting an industry standard here is
+asserting something upstream does not say.
 
-| | Stage | Tenant |
-|---|---|---|
-| Role | platform infrastructure | consumer of the platform |
-| Scope | org-wide, privileged | one project |
-| Identity | stage automation SAs in the IaC project (`iac-*-cicd-ro` / `-rw`) | its own SAs from the project factory's `automation` block |
-| State | its own prefix in the stage state bucket | a **managed folder** in the outputs bucket — not a bucket of its own |
-| CI/CD | registered in stage 0's `cicd.yaml`; workflow rendered by stage 0 | consumes generated provider and backend files |
+**`2-security` is optional, and CMEK does not require it.** It owns Cloud KMS and Certificate
+Authority Service, publishing `kms_keys_ids`, `ca_pools` and `tfvars`. The project factory's
+`.fast-stage.env` lists it under `FAST_STAGE_OPTIONAL`, not `FAST_STAGE_DEPS`. Its `kms_keys`
+variable is optional with an empty default, so key ids for *externally managed* keys can be injected
+through `var.context.kms_keys` instead. Upstream documents the mechanism but gives no worked example.
 
-**Do not register a tenant repository in stage 0's `cicd.yaml`.** That mechanism is for stages, and
-using it for a tenant grants platform-level identity to a workload repository.
+**Tenant CI/CD does not exist.** The project factory generates provider and tfvars files only — no
+workflow, no repository creation, and the stage README never mentions repositories. Upstream states
+the gap directly: output files *"will be used in future releases to configure project-level CI/CD
+from this factory."* Stage 0's CI/CD factory is documented as covering *"this and subsequent stages"*
+— stages, not tenants. Its schema is permissive enough that a tenant entry could be hand-added, but
+that is not a documented onboarding path.
 
-The platform owns the *container* — project, folder placement, tags, billing, APIs, network
-attachment, CMEK wiring, state, identity. The tenant owns the *workload* — compute instances,
-databases, load balancers, application IAM.
+## The upstream documentation contradicts itself
 
-## CI/CD
+This is the strongest reason to read schemas and `.tf` rather than READMEs alone. At `v56.1.0`:
 
-Stage 0 renders GitHub/GitLab/Okta workflows from `assets/workflow-<provider>.yaml`, driven by
-`cicd.yaml`, and writes them to `gs://<outputs_bucket>/workflows/<stage>.yaml`; the downstream
-repository pulls its workflow from the bucket on first setup. Pipelines authenticate by Workload
-Identity Federation — a read-only service account for `plan`, a read-write one for `apply` — so no
-service account keys exist.
+- `fast/stages/README.md` says `2-security` *"implements VPC Security Controls via separate
+  perimeters"*. It does not — it only consumes optional perimeter ids from `1-vpcsc`. The stage index
+  and the stage's own README disagree; trust the stage README.
+- `fast/README.md` still describes the pre-v56 split, where "the first stage" is bootstrap and "the
+  second" is resource management. Those merged into `0-org-setup`.
+- `0-org-setup` and `2-security` READMEs refer to a `data/` folder. The directory is `datasets/`.
+- `0-org-setup`'s README names the CI/CD factory file `[dataset]/cicd-workflows.yaml`. The shipped
+  files are `cicd.yaml`, and the variable has **no default** — unset means no workflows are rendered.
+- Only two of the four shipped datasets carry any CI/CD configuration at all.
 
-FAST does **not** create source repositories. It configures the identity that trusts one. Creating
-the repository is a manual act.
+## References
 
-## Mistakes to avoid
+**Primary — authoritative, versioned. Read these before asserting anything.**
+- [`fast/README.md`](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/blob/master/fast/README.md) — design and guiding principles
+- [`fast/stages/`](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/fast/stages) — the stage set, with a README per stage
+- [`fast/addons/`](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/tree/master/fast/addons) — the extension mechanism
+- Module READMEs and schemas — via `fabric-builder`'s `fabric.py`
 
-- Provisioning a per-tenant Terraform state bucket. FAST uses managed folders inside the existing
-  outputs bucket, with IAM scoped per project (`bucket_create = false`).
-- Hand-writing a tenant's `providers.tf` or `backend.tf`. They are generated; consume them.
-- Treating a committed `*.auto.tfvars.json` as current organization state.
-- Working around an undeployed stage instead of deploying it.
-- Putting a project YAML at the dataset root instead of under `projects/`.
-- Assuming a green pipeline proves provenance. `terraform plan` showing no changes proves the
-  configuration *matches* reality, not that it *created* it — a hand-built resource that was
-  imported looks identical. Provenance lives in Cloud Audit Logs: `CreateProject` records the
-  authenticated principal, cannot be disabled, and cannot be edited.
+**Design rationale — from FAST's own authors**
+- [Even FASTer networking](https://medium.com/@sruffilli/google-cloud-platform-even-faster-networking-872e25e70e6b) — Simone Ruffilli, Google, Nov 2025. Why FAST moved to factories: the earlier approach suffered *"poor separation between architectural data and deployment logic"*, and YAML datasets mark *"a separation between the engine and the configurations."* The clearest statement of the principle the whole toolkit rests on. Also gives direct guidance: hierarchical firewall policies at organization or folder level for broad rules, VPC-level rules for specific constraints.
+
+**Design rationale — cited by FAST itself**
+- [Resource Factories: A descriptive approach to Terraform](https://medium.com/google-cloud/resource-factories-a-descriptive-approach-to-terraform-581b3ebb59c) — why YAML in, resources out
+- [Managing GCP service usage through delegated role grants](https://medium.com/google-cloud/managing-gcp-service-usage-through-delegated-role-grants-a843610f2226) — how stages delegate without over-granting
+- [Workload Identity Federation](https://cloud.google.com/iam/docs/workload-identity-federation) · [IAM Conditions](https://cloud.google.com/iam/docs/conditions-overview) · [Tag-based access control](https://cloud.google.com/iam/docs/tags-access-control)
+
+**Not FAST — a different official landing zone**
+- [Enterprise foundations blueprint](https://docs.cloud.google.com/architecture/blueprints/security-foundations) and [terraform-example-foundation](https://github.com/terraform-google-modules/terraform-example-foundation). Google publishes two landing-zone implementations. Guidance is not interchangeable between them; check which one you are in before applying advice.
 
 ## Related
 
-- `planning` — for producing a plan before changing a landing zone.
+Two first-party skills ship inside `cloud-foundation-fabric` itself, under `skills/`. Prefer them
+over anything reconstructed:
+
+- **`fabric-builder`** — generating Terraform against CFF modules. Its `fabric.py` fetches module
+  READMEs, variables, outputs and schemas from GitHub, so module interfaces are retrieved rather than
+  recalled. Published as `googlecloudplatform/cloud-foundation-fabric@fabric-builder`.
+- **`fast/prerequisites`** — step-by-step preparation for running `0-org-setup`.
+
+Nothing in the wider skills ecosystem covers FAST's stage design; the nearest, Google's
+`google-cloud-recipe-foundation-builder`, is a different approach to landing zones and does not
+mention Fabric, FAST, or Terraform. Check which landing zone you are in before applying its advice.
+
+- `planning` — for producing a plan before changing a landing zone
