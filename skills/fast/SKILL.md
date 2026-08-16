@@ -88,6 +88,19 @@ on top of a stage, that reuse its IaC resources and leverage the same IAM config
 service accounts are used to run the add-on, and state configuration is stored in the same bucket as
 their 'parent stage' under a different prefix."* — `fast/addons/README.md`
 
+## How a stage is applied without holding a credential
+
+The stage split is enforced by the pipeline, not merely described by it. A GitHub Actions run
+federates an OIDC token into a near-powerless **CI/CD** service account, which impersonates the
+**stage** service account, which holds folder-scoped roles narrowed further by IAM Conditions. Read
+versus write is decided by whether the pull request merged, so review is what grants write. No
+service account key exists anywhere in the path.
+
+Getting this wrong is how roles end up over-granted, so the mechanism, the diagram, the one secret
+that is not what it looks like, and a pre-grant checklist are in
+[`references/cicd-and-github-actions.md`](references/cicd-and-github-actions.md). Read it before
+granting anything to a pipeline identity or adding a stage.
+
 ## Reading a specific landing zone
 
 Upstream tells you the design. It does not tell you what a given organisation runs. To learn that:
@@ -147,6 +160,12 @@ This is the strongest reason to read schemas and `.tf` rather than READMEs alone
 - Only two of the four shipped datasets carry any CI/CD configuration at all.
 
 ## References
+
+**In this skill**
+- [`references/cicd-and-github-actions.md`](references/cicd-and-github-actions.md) — how a pipeline
+  gets authority: the OIDC → WIF → CI/CD account → stage account chain, why the roles are safe,
+  where the workflow file is generated, and what to check before granting anything to a pipeline
+  identity
 
 **Primary — authoritative, versioned. Read these before asserting anything.**
 - [`fast/README.md`](https://github.com/GoogleCloudPlatform/cloud-foundation-fabric/blob/master/fast/README.md) — design and guiding principles
