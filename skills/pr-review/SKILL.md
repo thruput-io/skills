@@ -16,8 +16,10 @@ without the handbook checkout. Use the bundled copy; the step's own instructions
 through it to the source repository still apply.
 
 Exact commands and payload shapes are not in `CODE_REVIEW.md` — they are in the cheat sheet for the
-host the PR lives on: [`gh-cheat-sheet.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/gh-cheat-sheet.md) for GitHub, [`az-cheat-sheet.md`](https://raw.githubusercontent.com/thruput-io/handbook/main/az-cheat-sheet.md) for Azure DevOps
+host the PR lives on: [`references/gh-cheat-sheet.md`](references/gh-cheat-sheet.md) for GitHub, [`references/az-cheat-sheet.md`](references/az-cheat-sheet.md) for Azure DevOps
 (`dev.azure.com`). Read the one that matches the PR URL.
+
+For Azure DevOps PR reviews, note that Azure DevOps does not support atomic batch review posts. Agents MUST draft all comments locally first (in `review.json` / `comments.json`) and then use the submission script or shell loop provided in `references/az-cheat-sheet.md` to iterate through all comments, post each thread individually, attach/link `ledger.md`, post the PR summary thread, and cast the vote.
 
 ## Requirements
 
@@ -34,3 +36,7 @@ host the PR lives on: [`gh-cheat-sheet.md`](https://raw.githubusercontent.com/th
       for f in agent-rules-books-INDEX.md agent-rules-books-search-index.json; do
         gh api "repos/thruput-io/handbook/contents/references/$f" --jq '.content' | base64 -d > "references/$f"
       done
+
+- `references/gh-cheat-sheet.md`, `references/az-cheat-sheet.md` —
+  bundled host cheat sheets for filing review comments and interacting with GitHub and Azure DevOps PRs.
+
